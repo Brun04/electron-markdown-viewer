@@ -1,0 +1,19 @@
+{
+  "name": "markdown-viewer",
+  "version": "1.0.0",
+  "description": "A markdown interpreter",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "markdown"
+  ],
+  "author": "Bruno Verchère",
+  "license": "MIT",
+  "devDependencies": {
+    "@electron-forge/cli": "^6.0.0-beta.57",
+    "electron": "^13.1.2"
+  }
+}

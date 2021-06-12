@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+    <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+    <title>Markdown File Viewer</title>
+    <link rel="stylesheet" href="./custom.css"/>
+  </head>
+  <body id="holder">
+    <label class="switch">
+      <input type="checkbox" name="raw" id="raw"><div class="slider round"><span class="on">Raw</span><span class="off">Pretty</span></div>
+    </label>
+    <div id="content"></div>
+    <script src="./scripts/codeblocks.js"></script>
+    <script src="./scripts/markdown-parser.js"></script>
+  </body>
+</html>

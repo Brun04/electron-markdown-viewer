@@ -1,0 +1,149 @@
+/*
+ * Copyright (c) 2021 Bruno Verchère
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 90px;
+    height: 34px;
+}
+  
+.switch input {display:none;}
+  
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #0000ff;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+  
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+  
+input:checked + .slider { background-color: #0000ff; }
+  
+input:focus + .slider { box-shadow: 0 0 1px #2196F3; }
+  
+input:checked + .slider:before {
+    -webkit-transform: translateX(55px);
+    -ms-transform: translateX(55px);
+    transform: translateX(55px);
+}
+  
+.on { display: none; }
+  
+.on, .off {
+    color: white;
+    position: absolute;
+    transform: translate(-50%,-50%);
+    top: 50%;
+    left: 50%;
+    font-size: 10px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+  
+input:checked+ .slider .on { display: block; }
+  
+input:checked + .slider .off { display: none; }
+  
+/* Rounded sliders */
+.slider.round { border-radius: 34px; }
+  
+.slider.round:before { border-radius: 50%; }
+
+/* Content */
+.code {
+    font-family: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
+    font-size: .7rem;
+    margin: 0;
+}
+
+pre {
+    white-space: pre-wrap;       /* Since CSS 2.1 */
+    white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+    white-space: -pre-wrap;      /* Opera 4-6 */
+    white-space: -o-pre-wrap;    /* Opera 7 */
+    word-wrap: break-word;       /* Internet Explorer 5.5+ */
+}
+
+.pretty {
+    font-family: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
+    font-size: .7rem;
+    margin: 0;
+    tab-size: 4;
+    padding-left: 2px;
+    color: #fff;
+    background-color: rgb(35, 35, 35);
+    margin-top: 12px;
+    margin-bottom: 12px;
+}
+
+#content {
+    max-width: 100%;
+}
+
+img {
+    max-width: 100%;
+    margin-top: 5px;
+}
+
+.center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.green-it {
+    color: #00aa00;
+    font-style: italic;
+}
+
+.cyan-text {
+    color: #00aaaa;
+}
+
+/* INI */
+.ini-comment { color: rgb(0, 128, 0); }
+.ini-section { color: rgb(128, 0, 255); }
+.ini-key { color: rgb(0, 0, 255); }
+
+/* JSON */
+.json-string { color: rgb(200, 200, 200); }
+.json-number { color: rgb(255, 128, 0); }
+.json-boolean { color: rgb(24, 175, 138); }
+.json-null { color: rgb(24, 175, 138); }
+.json-key { color: rgb(255, 0, 0); }

@@ -1,0 +1,39 @@
+# Simple markdown viewer
+
+A simple parser and viewer application for markdown files, creating with [Electron](https://www.electronjs.org/).
+
+The following patterns are implemented: title, unordered list, code block (particular styles exist for `Bash`, `JSON` and `INI`), link, image.
+
+## Dependencies and install
+
+Electon is a framework which need NodeJS and Chromium for running. One installed, clone this repository and install the Node modules with:
+
+```
+npm install
+```
+
+## Usage
+
+Run the application in dev mode with the following command:
+
+```
+npm start
+``` 
+
+The file to read has to be drag and drop in the application window. The checkbox able to switch between the raw and the interpreted content.
+
+![Pretty mode example](./docs/pretty_mode_screenshot.png)
+
+---
+The same file in raw mode:
+
+![Raw mode example](./docs/raw_mode_screenshot.png)
+
+
+## Development
+
+The ordered lists and the tables need to be implemented in order to complete a minimal markdown parser... and more to come !
+
+## Author
+
+© 2021 Bruno Verchère
