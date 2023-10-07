@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Bruno Verchère
+ * Copyright (c) 2021-2023 Bruno Verchère
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -31,84 +31,57 @@ const RegexConstants = {
     CODE_BLOCK: /```(?<language>[0-9A-Za-zÂ-ÿ]+)?\r?\n(?<content>[^`]+)\r?\n```/gm,
     TITLE: /^(?<level>#{1,10})\ (?<content>.+)/gm,
     IMAGE: /!\[(?<alt>[a-zA-Z0-9Ü-ü\ -_]+)?\]\((?<src>[a-zA-Z0-9Ü-ü\ -_/]+)\)/gm,
-    UNORDERED_LIST: /^(-|\*)\ .+$/gm,
-    ORDERED_LIST: /^([0-9]+\.)\ .+$/gm,
+    UNORDERED_LIST: /^(-|\*)\ (?<content>.+)$/gm,
+    ORDERED_LIST: /^([0-9]+\.)\ (?<content>.+)$/gm,
 };
 
-/**
- * Class containing the regular expressions and operations.
- */
-class Regex {
-    constructor(){
-        this.all = {
-            'fileExt': /\.[^.\\/:*?\"<>|\r\n]+$/gm,
-            'title': /(#{1,10})\ .+/gm,
-            'ul': /^(-|\*)\ .+$/gm,
-            'pre': /```(?<language>[0-9A-Za-zÂ-ÿ]+)?\r?\n((([^`]+)?\r?\n)+)```/gm,
-            'img': /!\[(?<alt>[a-zA-Z0-9Ü-ü\ -_]+)?\]\((?<src>[a-zA-Z0-9Ü-ü\ -_/]+)\)/gm
-        };
-        this.text = [
-            {
-                val: /`([^`]+)`/g,
-                sub: '<code>$1</code>',
-                name: 'Simple code sample'
-            },
-            {
-                val: /\[([a-zA-Z0-9\ -_:]+)\]\((https?:\/\/[a-zA-Z0-9\.\/:]+)\)/g,
-                sub: '<a href="$2">$1</a>',
-                name: 'External link'
-            },
-            {
-                val: /[^">/](https?:\/\/[a-zA-Z0-9\.\/:]+)/gm,
-                sub: '<a href="$1">$1</a>',
-                name: 'Simple link'
-            },
-            {
-                val: /([a-z0-9]+([_|\.|-]{1}[a-z0-9]+)*@[a-z0-9]+([_|\.|-]­{1}[a-z0-9]+)*[\.]{1}[a-z]{2,6})/g,
-                sub: '<a href="$1">$1</a>',
-                name: 'Email address'
-            },
-            {
-                val: /([0-9]+(\.{1}[0-9]+)?[^\.0-9\/:\]\)"<])/gm,
-                sub: '<span class="cyan-text">$1</span>',
-                name: 'Number'
-            },
-            {
-                val: /\*{2}([a-zA-Z0-9Ü-ü\ \._\-\\\/#:%+=$~€\(\)<>]+)\*{2}/gm,
-                sub: '<strong>$1</strong>',
-                name: 'Boldness 1'
-            },
-            {
-                val: /_{2}([a-zA-Z0-9Ü-ü\ \._\-\\\/#%:+=$~€\(\)<>]+)_{2}/gm,
-                sub: '<strong>$1</strong>',
-                name: 'Boldness 2'
-            },
-            {
-                val: /\*([a-zA-Z0-9Ü-ü\ \._\-\\\/#%+=$:~€\(\)<>]+)\*/gm,
-                sub: '<i>$1</i>',
-                name: 'Italic 1'
-            },
-            {
-                val: /_([a-zA-Z0-9Ü-ü\ \._\-\\\/#%+=$:~€\(\)<>]+)_/gm,
-                sub: '<i>$1</i>',
-                name: 'Italic 2'
-            }
-        ];
+const TextRegexConstants = [
+    {
+        val: /`([^`]+)`/g,
+        sub: '<code>$1</code>',
+        name: 'Simple code sample'
+    },
+    {
+        val: /\[([a-zA-Z0-9\ -_:]+)\]\((https?:\/\/[a-zA-Z0-9\.\/:]+)\)/g,
+        sub: '<a href="$2">$1</a>',
+        name: 'External link'
+    },
+    {
+        val: /[^">/](https?:\/\/[a-zA-Z0-9\.\/:]+)/gm,
+        sub: '<a href="$1">$1</a>',
+        name: 'Simple link'
+    },
+    {
+        val: /([a-z0-9]+([_|\.|-]{1}[a-z0-9]+)*@[a-z0-9]+([_|\.|-]­{1}[a-z0-9]+)*[\.]{1}[a-z]{2,6})/g,
+        sub: '<a href="$1">$1</a>',
+        name: 'Email address'
+    },
+    {
+        val: / (?<value>[0-9]+(\.[0-9]+)?)(?: |\. |, |)/gm,
+        sub: ' <span class="cyan-text">$1</span>',
+        name: 'Number'
+    },
+    {
+        val: /\*{2}([a-zA-Z0-9Ü-ü\ \._\-\\\/#:%+=$~€\(\)<>]+)\*{2}/gm,
+        sub: '<strong>$1</strong>',
+        name: 'Boldness 1'
+    },
+    {
+        val: /_{2}([a-zA-Z0-9Ü-ü\ \._\-\\\/#%:+=$~€\(\)<>]+)_{2}/gm,
+        sub: '<strong>$1</strong>',
+        name: 'Boldness 2'
+    },
+    {
+        val: /\*([a-zA-Z0-9Ü-ü\ \._\-\\\/#%+=$:~€\(\)<>]+)\*/gm,
+        sub: '<i>$1</i>',
+        name: 'Italic 1'
+    },
+    {
+        val: /_([a-zA-Z0-9Ü-ü\ \._\-\\\/#%+=$:~€\(\)<>]+)_/gm,
+        sub: '<i>$1</i>',
+        name: 'Italic 2'
     }
-
-    match(str, rxName){
-        return str.match(this.all[rxName]);
-    }
-
-    exec(str, rxName){
-        return this.all[rxName].exec(str);
-    }
-
-    matchAll(str, rxName){
-        return str.matchAll(this.all[rxName]);
-    }
-
-};
+];
 
 /**
  * Class representing a markdown file parser.
@@ -124,7 +97,8 @@ class MdContent {
         this.reader.onload = (ev) => {
             this.rootFolder = file.path.split(file.name)[0];
             this.raw = ev.target.result;
-            this.doubleEolRegex = this.raw.match(/\r/) ? /'(\r\n){2}'/ : /'\n{2}'/;
+            this.eol = this.raw.match(/\r/) ? '\r\n' : '\n';
+            this.doubleEolRegex = this.raw.match(/\r/) ? /'\r\n\r\n'/gm : /'\n\n'/gm;
             this.makePretty();
         }
         this.reader.readAsText(file);
@@ -170,23 +144,49 @@ class MdContent {
      * @returns The element with replaced patterns
      */
     textualRegex(element){
-        let result = element;
-        rx.text.forEach(rg => {
-            result = result.replace(rg.val, rg.sub);
-        });
-        return result;
+        return TextRegexConstants.reduce((acc, rx) => acc.replace(rx.val, rx.sub), element);
     }
 
     /**
      * Interpret the input file to make it stylish. 
      */
     makePretty() {
-        this.pretty = this.raw.replace(this.doubleEolRegex, "</br></br>");
+        this.pretty = this.raw;;
         this.parsers.forEach(parser => {
             this.parse(parser.method, parser.rx).forEach(item => {
                 this.pretty = this.pretty.replace(item.raw, item.pretty);
             });
         });
+
+        this.parseList('ul', RegexConstants.UNORDERED_LIST);
+        this.parseList('ol', RegexConstants.ORDERED_LIST);
+        this.pretty = this.pretty.split('\n\n').map(item => {
+            let firstChar = item.substring(0, 1);
+            if(firstChar == '<') { return item; }
+            const p = document.createElement('p');
+            p.innerHTML = this.textualRegex(item);
+            return firstChar == '<' ? item : p.outerHTML;
+        }).join('\n\n');
+    }
+
+    parseList(htmlListType, regex) {
+        let m; 
+        let htmlList = document.createElement(htmlListType);
+        let rawList = '';
+        const matchIterator = this.pretty.matchAll(regex);
+        while( (m = matchIterator.next()) != null && !m.done) {
+            rawList = rawList + m.value[0] + this.eol;
+            const li = document.createElement('li');
+            li.innerHTML = this.textualRegex(m.value.groups.content);
+            htmlList.appendChild(li);
+            const firstIndex = this.pretty.indexOf(rawList);
+            const char = this.pretty[firstIndex + rawList.length];
+            if(typeof char === 'undefined' || char.match(/\n|\r/)) {
+                this.pretty = this.pretty.slice(0, firstIndex) + htmlList.outerHTML + this.pretty.substring(firstIndex + rawList.length);
+                htmlList = document.createElement(htmlListType);
+                rawList = '';
+            }
+        }
     }
 
     parse(matchParser, regex) {
@@ -207,25 +207,6 @@ class MdContent {
         return tag;
     }
 
-    isUl(element){
-        const regex = rx.all['ul'];
-        let m; let matches = [];
-        while((m = rx.exec(element, 'ul')) != null){
-            if(m.index === matches.lastIndex){ regex.lastIndex++; }
-            matches.push(m);
-        }
-        if(matches.length > 0){
-            let ul = document.createElement('ul');
-            matches.forEach(m => {
-                let item = document.createElement('li');
-                item.innerHTML = this.textualRegex(m[0].substr(2));
-                ul.appendChild(item);
-            })
-            return ul.outerHTML;
-        }
-        return null;
-    }
-
     parseCodeBlocks(groups){
         let tag = document.createElement('pre');
         const language = (typeof groups !== 'undefined' && typeof groups.language !== 'undefined') ? groups.language.toLocaleLowerCase() : '';
@@ -240,7 +221,7 @@ class MdContent {
         tag.className = 'center';
         const src = (typeof groups !== 'undefined' && typeof groups.src !== 'undefined') ? groups.src : '';
         tag.alt = (typeof groups !== 'undefined' && typeof groups.alt !== 'undefined') ? groups.alt : '';
-        tag.src = src.match(/^\/.+$/) ? src : this.rootFolder + src.substr(1);
+        tag.src = src.match(/^\/.+$/) ? src : this.rootFolder + src.substring(1);
         return tag;
     }
 };
@@ -273,7 +254,7 @@ document.addEventListener('drop', (e) => {
         const file = e.dataTransfer.files[0];let ext;
         if ( (ext = file.name.match(RegexConstants.FILE_EXTENSION)) != null && ext[0] === '.md'){
             md = new MdContent(file);
-            setTimeout(render, 2000);
+            setTimeout(render, 1000);
         }
     }
 });

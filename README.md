@@ -2,7 +2,7 @@
 
 A simple parser and viewer application for markdown files, creating with [Electron](https://www.electronjs.org/).
 
-The following patterns are implemented: title, unordered list, code block (particular styles exist for `Bash`, `JSON` and `INI`), link, image.
+The following patterns are implemented: title, unordered list, ordered list, code block (particular styles exist for `Bash`, `JSON` and `INI`), link, image.
 
 ## Dependencies and install
 
@@ -32,8 +32,8 @@ The same file in raw mode:
 
 ## Development
 
-The ordered lists and the tables need to be implemented in order to complete a minimal markdown parser... and more to come !
+The tables need to be implemented in order to complete a minimal markdown parser... and more to come !
 
 ## Author
 
-© 2021 Bruno Verchère
+© 2021-2023 Bruno Verchère

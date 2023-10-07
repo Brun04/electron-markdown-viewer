@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Bruno Verchère
+ * Copyright (c) 2021-2023 Bruno Verchère
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -78,7 +78,7 @@ class BashBlock {
      * @returns A modified line and true or the original line and false
      */
     isComment(line){
-        return line.substr(0, 1) === '#' ? `<span class="green-it">${line}</span>` : line;
+        return line.substring(0, 1) === '#' ? `<span class="green-it">${line}</span>` : line;
     }
 }
 
@@ -154,7 +154,7 @@ class INIBlock {
      * @returns A modified line and true or the original line and false
      */
     isComment(line){
-        return line.substr(0, 1) === '#' ? [`<span class="ini-comment">${line}</span>`, true] : [line, false];
+        return line.substring(0, 1) === ';' || line.substring(0, 1) === '#' ? [`<span class="ini-comment">${line}</span>`, true] : [line, false];
     }
 
     /**
@@ -164,7 +164,7 @@ class INIBlock {
      * @returns A modified line and true or the original line and false
      */
     isSection(line){
-        return line.match(/\[[a-z]+\]/) ? [`<span class="ini-section">${line}</span>`, true] : [line, false];
+        return line.match(/\[[a-zA-Z0-9]+\]/) ? [`<span class="ini-section">${line}</span>`, true] : [line, false];
     }
 
     /**
@@ -174,7 +174,7 @@ class INIBlock {
      * @returns A modified line and true or the original line and false
      */
     isItem(line){
-        if(line.match(/[a-zA-Z\_\.]+=/)){
+        if(line.match(/[a-zA-Z0-9\_\.]+=/)){
             const items = line.split('=');
             let values = this.isComment(items[1]);
             let value = values[1] ? values[0] : items[1];
