@@ -1,5 +1,7 @@
 # Simple markdown viewer
 
+[![GitHub license](https://img.shields.io/github/license/Naereen/StrapDown.js.svg)](https://github.com/Naereen/StrapDown.js/blob/master/LICENSE) [![GitHub branches](https://badgen.net/github/branches/Naereen/Strapdown.js)](https://github.com/Naereen/Strapdown.js/)
+
 A simple parser and viewer application for markdown files, creating with [Electron](https://www.electronjs.org/).
 
 The following patterns are implemented: title, unordered list, ordered list, code block (particular styles exist for `Bash`, `JSON` and `INI`), link, image.
@@ -37,3 +39,5 @@ The tables need to be implemented in order to complete a minimal markdown parser
 ## Author
 
 © 2021-2023 Bruno Verchère
+
+[![forthebadge](./docs/Made%20with-Electron-.svg)](https://forthebadge.com)
