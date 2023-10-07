@@ -21,7 +21,19 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-let md = null, rx = null;
+let md = null;
+
+/**
+ * List of non-dynamic regular expressions used in the app.
+ */
+const RegexConstants = {
+    FILE_EXTENSION: /\.[^.\\/:*?\"<>|\r\n]+$/gm,
+    CODE_BLOCK: /```(?<language>[0-9A-Za-zÂ-ÿ]+)?\r?\n(?<content>[^`]+)\r?\n```/gm,
+    TITLE: /^(?<level>#{1,10})\ (?<content>.+)/gm,
+    IMAGE: /!\[(?<alt>[a-zA-Z0-9Ü-ü\ -_]+)?\]\((?<src>[a-zA-Z0-9Ü-ü\ -_/]+)\)/gm,
+    UNORDERED_LIST: /^(-|\*)\ .+$/gm,
+    ORDERED_LIST: /^([0-9]+\.)\ .+$/gm,
+};
 
 /**
  * Class containing the regular expressions and operations.
@@ -32,8 +44,8 @@ class Regex {
             'fileExt': /\.[^.\\/:*?\"<>|\r\n]+$/gm,
             'title': /(#{1,10})\ .+/gm,
             'ul': /^(-|\*)\ .+$/gm,
-            'pre': /```([a-zA-Z0-9]+)?\r?\n((.+\r?\n)+)```/gm,
-            'img': /!\[([a-zA-Z0-9Ü-ü\ -_]+)\]\(([a-zA-Z0-9Ü-ü\ -_/]+)\)/gm
+            'pre': /```(?<language>[0-9A-Za-zÂ-ÿ]+)?\r?\n((([^`]+)?\r?\n)+)```/gm,
+            'img': /!\[(?<alt>[a-zA-Z0-9Ü-ü\ -_]+)?\]\((?<src>[a-zA-Z0-9Ü-ü\ -_/]+)\)/gm
         };
         this.text = [
             {
@@ -91,7 +103,11 @@ class Regex {
     exec(str, rxName){
         return this.all[rxName].exec(str);
     }
-    
+
+    matchAll(str, rxName){
+        return str.matchAll(this.all[rxName]);
+    }
+
 };
 
 /**
@@ -104,22 +120,19 @@ class MdContent {
     constructor(file){
         this.reader = new FileReader();
         this.raw = '';
-        this.interpreted = [];
+        this.pretty;
         this.reader.onload = (ev) => {
             this.rootFolder = file.path.split(file.name)[0];
             this.raw = ev.target.result;
-            this.eol = this.raw.match(/\r/) ? '\r\n' : '\n';
+            this.doubleEolRegex = this.raw.match(/\r/) ? /'(\r\n){2}'/ : /'\n{2}'/;
             this.makePretty();
-            content.innerHTML = this.getPretty();
         }
         this.reader.readAsText(file);
         this.parsers = [
-            this.isCodeBlock.bind(this),
-            this.isTitle.bind(this),
-            this.isUl.bind(this),
-            this.isImage.bind(this),
-            this.textualRegex.bind(this)
-        ]
+            { method: this.parseCodeBlocks.bind(this), rx: RegexConstants.CODE_BLOCK },
+            { method: this.parseTitles.bind(this), rx: RegexConstants.TITLE },
+            { method: this.parseImages.bind(this), rx: RegexConstants.IMAGE },
+        ];
     }
 
     /**
@@ -146,7 +159,9 @@ class MdContent {
      * 
      * @returns The pretty version as a string
      */
-    getPretty(){ return this.interpreted.filter(item => item != null).join('\n\n'); }
+    getPretty(){ 
+        return this.pretty;
+    }
 
     /**
      * Apply the textual regex on the element.
@@ -166,24 +181,30 @@ class MdContent {
      * Interpret the input file to make it stylish. 
      */
     makePretty() {
-        this.raw.split(this.eol+this.eol).forEach(element => {
-            let html = null;let i = 0;
-            do {
-                html = this.parsers[i](element); i++;
-            }while(html == null && i < this.parsers.length);
-            this.interpreted.push(html);
+        this.pretty = this.raw.replace(this.doubleEolRegex, "</br></br>");
+        this.parsers.forEach(parser => {
+            this.parse(parser.method, parser.rx).forEach(item => {
+                this.pretty = this.pretty.replace(item.raw, item.pretty);
+            });
         });
     }
 
-    isTitle(element){
-        if (rx.match(element, 'title')){
-            let matches = rx.exec(element, 'title');
-            const level = matches[1].length;
-            let tag = document.createElement(`h${level}`);
-            tag.innerHTML = `${matches[0].split(matches[1]+' ')[1].replace(/`<(.+)>`/, '&lt;$1&gt')}`;
-            return tag.outerHTML;
+    parse(matchParser, regex) {
+        const matchesIterator = this.pretty.matchAll(regex);
+        let m; let elements = [];
+        while( (m = matchesIterator.next()) != null && !m.done) {
+            const tag = matchParser(m.value.groups);
+            elements.push({ raw: m.value[0], pretty: tag.outerHTML });
         }
-        return null;
+        return elements;
+    }
+
+    parseTitles(groups) {
+        const level = (typeof groups !== 'undefined' && typeof groups.level !== 'undefined') ? groups.level.length : 10;
+        const content = (typeof groups !== 'undefined' && typeof groups.content !== 'undefined') ? groups.content : '';
+        let tag = document.createElement(`h${level}`);
+        tag.innerHTML = content;
+        return tag;
     }
 
     isUl(element){
@@ -205,30 +226,42 @@ class MdContent {
         return null;
     }
 
-    isCodeBlock(element){
-        let matches = rx.exec(element, 'pre');
-        if (matches != null){
-            let block = document.createElement('div');
-            block.className = 'code pretty';
-            block.innerHTML =  blockBuilder(matches[2], matches[1]).content;
-            return block.outerHTML;
-        }
-        return null;
+    parseCodeBlocks(groups){
+        let tag = document.createElement('pre');
+        const language = (typeof groups !== 'undefined' && typeof groups.language !== 'undefined') ? groups.language.toLocaleLowerCase() : '';
+        const content = (typeof groups !== 'undefined' && typeof groups.content !== 'undefined') ? groups.content : '';
+        tag.className = 'code pretty';
+        tag.innerHTML =  blockBuilder(content, language).content;
+        return tag;
     }
 
-    isImage(element){
-        if (rx.match(element, 'img')){
-            let matches = rx.exec(element, 'img');
-            let img = document.createElement(`img`);
-            img.alt = matches[1];
-            img.className = 'center';
-            if (matches[2].match(/^\/.+$/)){ img.src = matches[2]; }
-            else{ img.src = this.rootFolder + matches[2].substr(1); }
-            return img.outerHTML;
-        }
-        return null;
+    parseImages(groups) {
+        let tag = document.createElement('img');
+        tag.className = 'center';
+        const src = (typeof groups !== 'undefined' && typeof groups.src !== 'undefined') ? groups.src : '';
+        tag.alt = (typeof groups !== 'undefined' && typeof groups.alt !== 'undefined') ? groups.alt : '';
+        tag.src = src.match(/^\/.+$/) ? src : this.rootFolder + src.substr(1);
+        return tag;
     }
 };
+
+/**
+ * Update the view based on the raw/pretty switch state.
+ */
+function render() {
+    const rawSwitch = document.querySelector('#raw');
+    const content = document.querySelector('#content');
+    if (rawSwitch.checked && md != null && md.isReady()){
+        content.innerHTML = '';
+        content.appendChild(md.getRaw());
+    } else if (!rawSwitch.checked && md != null && md.isReady()){
+        const rawMd = document.querySelector('#rawMarkdown');
+        if(rawMd != null) {
+            content.removeChild(rawMd);
+        }
+        content.innerHTML = md.getPretty();
+    }
+}
 
 /**
  * File drag and drop listeners.
@@ -237,10 +270,10 @@ document.addEventListener('drop', (e) => {
     e.preventDefault();
     e.stopPropagation();
     if (e.dataTransfer.files.length == 1){
-        const file = e.dataTransfer.files[0]; let ext;
-        rx = new Regex();
-        if ((ext = rx.match(file.name, 'fileExt')) != null && ext[0] === '.md'){
+        const file = e.dataTransfer.files[0];let ext;
+        if ( (ext = file.name.match(RegexConstants.FILE_EXTENSION)) != null && ext[0] === '.md'){
             md = new MdContent(file);
+            setTimeout(render, 2000);
         }
     }
 });
@@ -252,13 +285,5 @@ document.addEventListener('dragover', (e) => {
  * Raw/Interpreted switch listener
  */
 document.querySelector('#raw').addEventListener('click', (e) => {
-    const content = document.querySelector('#content');
-    if (e.target.checked && md != null && md.isReady()){
-        content.innerHTML = '';
-        content.appendChild(md.getRaw());
-    }else if (!e.target.checked && md != null && md.isReady()){
-        const rawMd = document.querySelector('#rawMarkdown');
-        content.removeChild(rawMd);
-        content.innerHTML = md.getPretty();
-    }
+    render();
 });

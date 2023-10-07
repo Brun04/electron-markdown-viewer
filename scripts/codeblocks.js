@@ -34,7 +34,7 @@ let blockBuilder = (raw, language) => {
             return new JSONBlock(raw);
         case 'bash':
             return new BashBlock(raw);
-        case 'INI':
+        case 'ini':
             return new INIBlock(raw);
         default:
             return new DefaultBlock(raw);
