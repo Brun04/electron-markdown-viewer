@@ -13,7 +13,7 @@
   "author": "Bruno Verchère",
   "license": "MIT",
   "devDependencies": {
-    "@electron-forge/cli": "^6.0.0-beta.57",
-    "electron": "^13.1.2"
+    "@electron-forge/cli": "^6.4.2",
+    "electron": "^26.3.0"
   }
 }
