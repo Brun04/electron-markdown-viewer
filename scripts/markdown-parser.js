@@ -95,7 +95,7 @@ class MdContent {
         this.raw = '';
         this.pretty;
         this.reader.onload = (ev) => {
-            this.rootFolder = file.path.split(file.name)[0];
+            this.file = file;
             this.raw = ev.target.result;
             this.eol = this.raw.match(/\r/) ? '\r\n' : '\n';
             this.doubleEolRegex = this.raw.match(/\r/) ? /'\r\n\r\n'/gm : /'\n\n'/gm;
@@ -221,7 +221,7 @@ class MdContent {
         tag.className = 'center';
         const src = (typeof groups !== 'undefined' && typeof groups.src !== 'undefined') ? groups.src : '';
         tag.alt = (typeof groups !== 'undefined' && typeof groups.alt !== 'undefined') ? groups.alt : '';
-        tag.src = src.match(/^\/.+$/) ? src : this.rootFolder + src.substring(1);
+        electronApi.setSourcePath(this.file, src, tag);
         return tag;
     }
 };
@@ -252,7 +252,7 @@ document.addEventListener('drop', (e) => {
     e.stopPropagation();
     if (e.dataTransfer.files.length == 1){
         const file = e.dataTransfer.files[0];let ext;
-        if ( (ext = file.name.match(RegexConstants.FILE_EXTENSION)) != null && ext[0] === '.md'){
+        if ( (ext = file.name.match(RegexConstants.FILE_EXTENSION)) != null && ext[0] === '.md') {
             md = new MdContent(file);
             setTimeout(render, 1000);
         }
