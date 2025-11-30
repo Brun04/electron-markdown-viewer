@@ -34,3 +34,12 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 })
 
+const { contextBridge, webUtils } = require('electron')
+
+contextBridge.exposeInMainWorld('electronApi', {
+	setSourcePath (file, src, tag) {
+		const path = webUtils.getPathForFile(file);
+		tag.src = src.match(/^\/.+$/) ? src : path.split(file.name)[0] + src.substring(1);
+	}
+})
+
